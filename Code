@@ -1,0 +1,140 @@
+# Library Imports
+from tkinter import *
+import requests
+import json
+import datetime
+from PIL import ImageTk, Image
+
+# Create the main window
+root = Tk()
+root.title("Weather App")
+root.geometry("450x700")
+root['background'] = "white"
+
+# Load and display the logo image
+new = ImageTk.PhotoImage(Image.open('logo.png'))
+panel = Label(root, image=new)
+panel.place(x=0, y=520)
+
+# Get the current date and display it
+dt = datetime.datetime.now()
+date = Label(root, text=dt.strftime('%A--'), bg='white', font=("bold", 15))
+date.place(x=5, y=130)
+month = Label(root, text=dt.strftime('%m %B'), bg='white', font=("bold", 15))
+month.place(x=100, y=130)
+
+# Get the current time and display it
+hour = Label(root, text=dt.strftime('%I : %M %p'),
+             bg='white', font=("bold", 15))
+hour.place(x=10, y=160)
+
+# Set the theme based on the time of day
+if int((dt.strftime('%I'))) >= 8 & int((dt.strftime('%I'))) <= 5:
+    img = ImageTk.PhotoImage(Image.open('moon.png'))
+    panel = Label(root, image=img)
+    panel.place(x=210, y=200)
+else:
+    img = ImageTk.PhotoImage(Image.open('sun.png'))
+    panel = Label(root, image=img)
+    panel.place(x=210, y=200)
+
+# Create a search bar for entering the city name
+city_name = StringVar()
+city_entry = Entry(root, textvariable=city_name, width=45)
+city_entry.grid(row=1, column=0, ipady=10, stick=W+E+N+S)
+
+
+def get_weather():
+    # API Call
+    api_request = requests.get("https://api.openweathermap.org/data/2.5/weather?q="
+                               + city_entry.get() + "&units=metric&appid="+api_key)
+
+    api = json.loads(api_request.content)
+
+    # Get the temperature and humidity
+    y = api['main']
+    current_temperature = y['temp']
+    humidity = y['humidity']
+
+    # Get the minimum and maximum temperature
+    temp_min = y['temp_min']
+    temp_max = y['temp_max']
+
+    # Get the coordinates
+    x = api['coord']
+    longitude = x['lon']
+    latitude = x['lat']
+
+    # Get the country
+    z = api['sys']
+    country = z['country']
+    city = api['name']
+
+    # Update the information on the screen
+    label_temp.configure(text=current_temperature)
+    label_humidity.configure(text=humidity)
+    max_temp.configure(text=temp_max)
+    min_temp.configure(text=temp_min)
+    label_lon.configure(text=longitude)
+    label_lat.configure(text=latitude)
+    label_country.configure(text=country)
+    label_city.configure(text=city)
+
+
+# Create a search button to retrieve weather information
+city_name_button = Button(root, text="Search", command=get_weather)
+city_name_button.grid(row=1, column=1, padx=5, stick=W+E+N+S)
+
+# Create labels for displaying the city name, country, and coordinates
+label_city = Label(root, text="...", width=0,
+                   bg='white', font=("bold", 15))
+label_city.place(x=10, y=63)
+
+label_country = Label(root, text="...", width=0,
+                      bg='white', font=("bold", 15))
+label_country.place(x=135, y=63)
+
+label_lon = Label(root, text="...", width=0,
+                  bg='white', font=("Helvetica", 15))
+label_lon.place(x=25, y=95)
+label_lat = Label(root, text="...", width=0,
+                  bg='white', font=("Helvetica", 15))
+label_lat.place(x=95, y=95)
+
+# Create a label for displaying the current temperature
+label_temp = Label(root, text="...", width=0, bg='white',
+                   font=("Helvetica", 110), fg='black')
+label_temp.place(x=18, y=220)
+
+# Create labels for displaying humidity, maximum temperature, and minimum temperature
+humidity_label = Label(root, text="Humidity: ", width=0,
+                       bg='white', font=("bold", 15))
+humidity_label.place(x=3, y=400)
+
+label_humidity = Label(root, text="...", width=0,
+                       bg='white', font=("bold", 15))
+label_humidity.place(x=107, y=400)
+
+max_temp_label = Label(root, text="Max. Temp.: ", width=0,
+                       bg='white', font=("bold", 15))
+max_temp_label.place(x=3, y=430)
+
+max_temp = Label(root, text="...", width=0,
+                 bg='white', font=("bold", 15))
+max_temp.place(x=128, y=430)
+
+min_temp_label = Label(root, text="Min. Temp.: ", width=0,
+                       bg='white', font=("bold", 15))
+min_temp_label.place(x=3, y=460)
+
+min_temp = Label(root, text="...", width=0,
+                 bg='white', font=("bold", 15))
+min_temp.place(x=128, y=460)
+
+# Create a note label
+note = Label(root, text="All temperatures in degree celsius",
+             bg='white', font=("italic", 10))
+note.place(x=95, y=495)
+
+# Start the main event loop
+root.mainloop()
